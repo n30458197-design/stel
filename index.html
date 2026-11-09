@@ -6,28 +6,22 @@
 <title>Mis videos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <style>
-:root{--bg:#f4f5fb;--surface:#fff;--ink:#181d3a;--muted:#5b6586;--line:#dde1f0;--accent:#3347ff;--on-accent:#fff;--chip:#e6e9f7;
-box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1226;--surface:#171c3a;--ink:#eef0ff;--muted:#9aa4cc;--line:#2a3260;--accent:#8793ff;--on-accent:#0e1226;--chip:#232a52}}
-:root[data-theme="dark"]{--bg:#0e1226;--surface:#171c3a;--ink:#eef0ff;--muted:#9aa4cc;--line:#2a3260;--accent:#8793ff;--on-accent:#0e1226;--chip:#232a52}
+:root{--bg:#f4f5fb;--surface:#fff;--ink:#181d3a;--muted:#5b6586;--line:#dde1f0;--accent:#3347ff;--on-accent:#fff;--chip:#e6e9f7}
+@media (prefers-color-scheme:dark){:root{--bg:#0e1226;--surface:#171c3a;--ink:#eef0ff;--muted:#9aa4cc;--line:#2a3260;--accent:#8793ff;--on-accent:#0e1226;--chip:#232a52}}
 *{box-sizing:border-box}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.4}
 button,input,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;gap:12px;align-items:center;padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--line)}
-body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--surface);z-index:10}
+.hid{display:none!important}
+.top{position:sticky;top:0;z-index:5;display:flex;gap:10px;align-items:center;padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--line)}
 .logo{background:none;border:0;font-weight:800;font-size:1.3rem;letter-spacing:-.02em;padding:4px;white-space:nowrap}
 .search{flex:1;max-width:560px;margin:0 auto;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:9px 16px;min-width:0}
 .btn{background:var(--accent);color:var(--on-accent);border:0;border-radius:999px;padding:9px 16px;font-weight:600;white-space:nowrap}
 .btn.alt{background:var(--chip);color:var(--ink)}
-.btn.on{background:var(--chip);color:var(--ink)}
 .wrap{max-width:1400px;margin:0 auto;padding:16px}
-.chips{display:flex;gap:8px;margin-bottom:16px}
-.chip{background:var(--chip);border:0;border-radius:8px;padding:7px 14px}
-.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:22px 16px}
 .card{background:none;border:0;text-align:left;padding:0;display:block;width:100%}
 .thumb{position:relative;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:linear-gradient(135deg,#2b3a8f,#6a3fa0)}
@@ -46,7 +40,6 @@ h1{font-size:1.25rem;margin:12px 0 8px;overflow-wrap:anywhere}
 .row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
 .ch{display:flex;align-items:center;gap:10px}
 .acts{display:flex;gap:8px;flex-wrap:wrap}
-.desc{background:var(--chip);border-radius:12px;padding:12px;margin:14px 0}
 .cm h2{font-size:1.05rem}
 .cm .in{display:flex;gap:10px;margin:12px 0 18px}
 .cm textarea{flex:1;min-height:44px;resize:vertical;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
@@ -57,7 +50,7 @@ h1{font-size:1.25rem;margin:12px 0 8px;overflow-wrap:anywhere}
 dialog{border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--ink);padding:20px;width:min(440px,92vw)}
 dialog::backdrop{background:rgba(0,0,0,.5)}
 dialog label{display:block;margin:12px 0 4px;font-weight:600}
-dialog input[type=text]{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+dialog input[type=text],dialog input[type=email],dialog input[type=password]{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
 dialog .row{margin-top:18px;justify-content:flex-end}
 .err{color:#c62a47;font-size:.85rem;min-height:1.2em;margin-top:8px}
 </style>
@@ -67,161 +60,200 @@ dialog .row{margin-top:18px;justify-content:flex-end}
   <button class="logo" id="home" aria-label="Ir al inicio">▶ Mis videos</button>
   <input class="search" id="q" type="search" placeholder="Buscar" aria-label="Buscar videos">
   <button class="btn" id="up">Subir video</button>
+  <button class="btn alt" id="out">Salir</button>
+  <button class="btn" id="in">Iniciar sesión</button>
 </div>
 <div class="wrap" id="app"></div>
 
-<dialog id="dlg">
+<dialog id="adlg">
+  <h2 style="margin:0">Tu cuenta</h2>
+  <label for="em">Correo</label><input id="em" type="email" autocomplete="email">
+  <label for="pw">Contraseña (mínimo 6 caracteres)</label><input id="pw" type="password" autocomplete="current-password">
+  <div class="err" id="aerr" role="alert"></div>
+  <div class="row"><button class="btn alt" id="acancel">Cancelar</button><button class="btn alt" id="signup">Crear cuenta</button><button class="btn" id="signin">Entrar</button></div>
+</dialog>
+
+<dialog id="udlg">
   <h2 style="margin:0">Subir video</h2>
-  <label for="f">Archivo</label>
-  <input id="f" type="file" accept="video/*">
-  <label for="ti">Título</label>
-  <input id="ti" type="text" maxlength="100">
-  <label for="cn">Nombre del canal</label>
-  <input id="cn" type="text" maxlength="40" value="Mi canal">
-  <div class="err" id="err" role="alert"></div>
-  <div class="row"><button class="btn alt" id="cancel">Cancelar</button><button class="btn" id="pub">Publicar</button></div>
+  <label for="f">Archivo</label><input id="f" type="file" accept="video/*">
+  <label for="ti">Título</label><input id="ti" type="text" maxlength="100">
+  <label for="cn">Nombre del canal</label><input id="cn" type="text" maxlength="40" value="Mi canal">
+  <div class="err" id="uerr" role="alert"></div>
+  <div class="row"><button class="btn alt" id="ucancel">Cancelar</button><button class="btn" id="pub">Publicar</button></div>
 </dialog>
 
 <script>
 (function(){
-  var vids=[],subs={},view='home',cur=null,onlyLiked=false,uid=0,db=null;
-  function dbOpen(cb){
-    try{
-      if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();
-      var r=indexedDB.open('mis-videos',1);
-      r.onupgradeneeded=function(){r.result.createObjectStore('vids',{keyPath:'id'});r.result.createObjectStore('meta')};
-      r.onsuccess=function(){db=r.result;cb()};
-      r.onerror=function(){cb()};r.onblocked=function(){cb()};
-    }catch(e){cb()}
+  // 1) Pega aquí tu clave pública (anon o publishable) de Supabase
+  const SUPABASE_URL='https://hrhexdkjirhvuvcjewzn.supabase.co';
+  const SUPABASE_KEY='sb_publishable_iHud6QkhZt1RsVZRhgwOxA_mbTilFkk';
+
+  const $=id=>document.getElementById(id), app=$('app');
+  function el(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
+  if(SUPABASE_KEY.indexOf('PEGA')===0){app.appendChild(el('div','empty','Falta la clave de Supabase. Ábrela en index.html y pégala en SUPABASE_KEY.'));return}
+  const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+  let user=null,vids=[];
+
+  const pub=p=>sb.storage.from('videos').getPublicUrl(p).data.publicUrl;
+  const fmt=s=>{s=s||0;const m=Math.floor(s/60),r=Math.floor(s%60);return m+':'+(r<10?'0':'')+r};
+  function ago(d){const m=Math.floor((Date.now()-new Date(d))/60000);if(m<1)return 'hace un momento';if(m<60)return 'hace '+m+(m===1?' minuto':' minutos');const h=Math.floor(m/60);if(h<24)return 'hace '+h+(h===1?' hora':' horas');const dd=Math.floor(h/24);return 'hace '+dd+(dd===1?' día':' días')}
+  const views=n=>n+(n===1?' vista':' vistas');
+  const avatar=n=>el('div','av',(n||'?').charAt(0).toUpperCase());
+  const who=()=>user?(user.email||'Usuario').split('@')[0]:'';
+
+  function renderTop(){
+    $('up').classList.toggle('hid',!user);
+    $('out').classList.toggle('hid',!user);
+    $('in').classList.toggle('hid',!!user);
   }
-  function save(x){
-    if(!db)return;
-    try{var rec={};for(var k in x)if(k!=='url')rec[k]=x[k];db.transaction('vids','readwrite').objectStore('vids').put(rec)}catch(e){}
+  function needLogin(){$('aerr').textContent='';$('adlg').showModal()}
+
+  async function loadVideos(){
+    const r=await sb.from('videos').select('*').order('created_at',{ascending:false});
+    vids=r.data||[];
+    if(r.error)app.appendChild(el('div','empty','No se pudieron cargar los videos: '+r.error.message));
   }
-  function saveSubs(){if(!db)return;try{db.transaction('meta','readwrite').objectStore('meta').put(subs,'subs')}catch(e){}}
-  function removeVid(x){
-    var i=vids.indexOf(x);if(i>-1)vids.splice(i,1);URL.revokeObjectURL(x.url);
-    if(db){try{db.transaction('vids','readwrite').objectStore('vids').delete(x.id)}catch(e){}}
-    go('home');
-  }
-  function load(cb){
-    if(!db){cb();return}
-    try{
-      var tx=db.transaction(['vids','meta'],'readonly');
-      var a=tx.objectStore('vids').getAll(),m=tx.objectStore('meta').get('subs');
-      tx.oncomplete=function(){
-        (a.result||[]).forEach(function(r){r.url=URL.createObjectURL(r.blob);vids.push(r);uid=Math.max(uid,r.id)});
-        vids.sort(function(p,q){return q.at-p.at});subs=m.result||{};cb();
-      };
-      tx.onerror=function(){cb()};
-    }catch(e){cb()}
-  }
-  var app=document.getElementById('app'),$=function(i){return document.getElementById(i)};
-  function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
-  function fmt(s){if(!isFinite(s))return '0:00';var m=Math.floor(s/60),r=Math.floor(s%60);return m+':'+(r<10?'0':'')+r}
-  function ago(t){var m=Math.floor((Date.now()-t)/60000);if(m<1)return 'hace un momento';if(m<60)return 'hace '+m+(m===1?' minuto':' minutos');var h=Math.floor(m/60);return 'hace '+h+(h===1?' hora':' horas')}
-  function views(n){return n+(n===1?' vista':' vistas')}
-  function avatar(n){return el('div','av',(n||'?').charAt(0).toUpperCase())}
 
   function card(x,side){
-    var b=el('button','card');b.onclick=function(){open(x.id)};
-    var th=el('div','thumb');
-    if(x.thumb){var im=el('img');im.src=x.thumb;im.alt='';th.appendChild(im)}
-    th.appendChild(el('span','dur',fmt(x.dur)));
-    var m=el('div','meta');
-    if(!side)m.appendChild(avatar(x.channel));
-    var tx=el('div');tx.appendChild(el('div','t',x.title));
-    tx.appendChild(el('div','s',x.channel));
-    tx.appendChild(el('div','s',views(x.views)+' · '+ago(x.at)));
+    const b=el('button','card');b.onclick=()=>watch(x.id);
+    const th=el('div','thumb');
+    if(x.thumb_path){const im=el('img');im.src=pub(x.thumb_path);im.alt='';im.loading='lazy';th.appendChild(im)}
+    th.appendChild(el('span','dur',fmt(x.duration)));
+    const m=el('div','meta');if(!side)m.appendChild(avatar(x.channel));
+    const tx=el('div');tx.appendChild(el('div','t',x.title));tx.appendChild(el('div','s',x.channel));
+    tx.appendChild(el('div','s',views(x.views)+' · '+ago(x.created_at)));
     m.appendChild(tx);b.appendChild(th);b.appendChild(m);return b;
   }
 
-  function home(){
+  async function home(reload){
     app.innerHTML='';
-    var q=$('q').value.trim().toLowerCase();
-    var chips=el('div','chips');
-    [['Todos',false],['Me gusta',true]].forEach(function(c){
-      var b=el('button','chip',c[0]);b.setAttribute('aria-pressed',String(onlyLiked===c[1]));
-      b.onclick=function(){onlyLiked=c[1];home()};chips.appendChild(b);
-    });
-    app.appendChild(chips);
-    var list=vids.filter(function(x){return (!onlyLiked||x.liked)&&x.title.toLowerCase().indexOf(q)>-1});
-    if(!list.length){
-      var e=el('div','empty');
-      e.appendChild(el('p',null,vids.length?'Ningún video coincide con tu búsqueda.':'Aún no hay videos. Sube el primero desde tu dispositivo.'));
-      app.appendChild(e);return;
-    }
-    var g=el('div','grid');list.forEach(function(x){g.appendChild(card(x))});app.appendChild(g);
+    if(reload||!vids.length){app.appendChild(el('div','empty','Cargando…'));await loadVideos();app.innerHTML=''}
+    const q=$('q').value.trim().toLowerCase();
+    const list=vids.filter(x=>x.title.toLowerCase().includes(q));
+    if(!list.length){app.appendChild(el('div','empty',vids.length?'Ningún video coincide con tu búsqueda.':'Aún no hay videos. Inicia sesión y sube el primero.'));return}
+    const g=el('div','grid');list.forEach(x=>g.appendChild(card(x)));app.appendChild(g);
   }
 
-  function watch(){
-    var x=vids.filter(function(y){return y.id===cur})[0];if(!x){go('home');return}
+  async function watch(id,noCount){
+    const x=vids.find(v=>v.id===id);if(!x){home();return}
+    const [lk,cm,sub]=await Promise.all([
+      sb.from('likes').select('user_id').eq('video_id',id),
+      sb.from('comments').select('*').eq('video_id',id).order('created_at',{ascending:false}),
+      sb.from('subscriptions').select('subscriber').eq('channel_owner',x.user_id)
+    ]);
+    const likes=lk.data||[],comments=cm.data||[],subs=sub.data||[];
+    const liked=!!user&&likes.some(l=>l.user_id===user.id);
+    const subd=!!user&&subs.some(s=>s.subscriber===user.id);
+    if(!noCount){x.views++;sb.rpc('increment_views',{vid:id})}
     app.innerHTML='';
-    var w=el('div','watch'),main=el('div');
-    var p=el('div','player'),v=document.createElement('video');
-    v.controls=true;v.playsInline=true;v.src=x.url;p.appendChild(v);main.appendChild(p);
-    v.onended=function(){var i=vids.indexOf(x),n=vids[i+1]||vids[0];if(n&&n!==x)open(n.id)};
-    v.play().catch(function(){});
+    const w=el('div','watch'),main=el('div');
+    const p=el('div','player'),v=document.createElement('video');
+    v.controls=true;v.playsInline=true;v.src=pub(x.file_path);p.appendChild(v);main.appendChild(p);
+    v.onended=()=>{const i=vids.indexOf(x),n=vids[i+1]||vids[0];if(n&&n!==x)watch(n.id)};
+    v.play().catch(()=>{});
     main.appendChild(el('h1',null,x.title));
-    var r=el('div','row'),ch=el('div','ch');ch.appendChild(avatar(x.channel));
-    var cn=el('div');cn.appendChild(el('div','t',x.channel));ch.appendChild(cn);
-    var sb=el('button','btn',subs[x.channel]?'Suscrito':'Suscribirse');
-    if(subs[x.channel])sb.className='btn on';
-    sb.onclick=function(){subs[x.channel]=!subs[x.channel];saveSubs();watch()};ch.appendChild(sb);
-    var ac=el('div','acts');
-    var lk=el('button','btn alt',(x.liked?'♥ ':'♡ ')+'Me gusta'+(x.likes?' ('+x.likes+')':''));
-    if(x.liked)lk.className='btn';
-    lk.onclick=function(){x.liked=!x.liked;x.likes+=x.liked?1:-1;save(x);watch()};
-    var dl=el('button','btn alt','Eliminar');dl.onclick=function(){if(confirm('¿Eliminar este video de tu biblioteca?'))removeVid(x)};ac.appendChild(lk);ac.appendChild(dl);r.appendChild(ch);r.appendChild(ac);main.appendChild(r);
-    var d=el('div','desc');d.appendChild(el('b',null,views(x.views)+' · '+ago(x.at)));
-    d.appendChild(el('div',null,x.fileName));main.appendChild(d);
-    var cm=el('section','cm');cm.appendChild(el('h2',null,x.comments.length+(x.comments.length===1?' comentario':' comentarios')));
-    var inn=el('div','in'),ta=el('textarea');ta.placeholder='Escribe un comentario';ta.setAttribute('aria-label','Comentario');
-    var cb=el('button','btn','Comentar');
-    cb.onclick=function(){var t=ta.value.trim();if(!t)return;x.comments.unshift({t:t,at:Date.now()});save(x);watch()};
-    inn.appendChild(ta);inn.appendChild(cb);cm.appendChild(inn);
-    x.comments.forEach(function(c){
-      var row=el('div','c');row.appendChild(avatar('Tú'));
-      var b=el('div');b.appendChild(el('div','s','Tú · '+ago(c.at)));b.appendChild(el('div',null,c.t));
-      row.appendChild(b);cm.appendChild(row);
+    const r=el('div','row'),ch=el('div','ch');ch.appendChild(avatar(x.channel));
+    const cn=el('div');cn.appendChild(el('div','t',x.channel));cn.appendChild(el('div','s',subs.length+(subs.length===1?' suscriptor':' suscriptores')));ch.appendChild(cn);
+    const sbtn=el('button',subd?'btn alt':'btn',subd?'Suscrito':'Suscribirse');
+    sbtn.onclick=async()=>{
+      if(!user)return needLogin();
+      if(subd)await sb.from('subscriptions').delete().eq('subscriber',user.id).eq('channel_owner',x.user_id);
+      else await sb.from('subscriptions').insert({channel_owner:x.user_id});
+      watch(id,true);
+    };
+    if(!user||user.id!==x.user_id)ch.appendChild(sbtn);
+    const ac=el('div','acts');
+    const lb=el('button',liked?'btn':'btn alt',(liked?'♥ ':'♡ ')+'Me gusta'+(likes.length?' ('+likes.length+')':''));
+    lb.onclick=async()=>{
+      if(!user)return needLogin();
+      if(liked)await sb.from('likes').delete().eq('video_id',id).eq('user_id',user.id);
+      else await sb.from('likes').insert({video_id:id});
+      watch(id,true);
+    };
+    ac.appendChild(lb);
+    if(user&&user.id===x.user_id){
+      const db=el('button','btn alt','Eliminar');
+      db.onclick=async()=>{
+        if(!confirm('¿Eliminar este video para todos?'))return;
+        await sb.storage.from('videos').remove([x.file_path].concat(x.thumb_path?[x.thumb_path]:[]));
+        await sb.from('videos').delete().eq('id',id);
+        vids=vids.filter(y=>y.id!==id);home();
+      };
+      ac.appendChild(db);
+    }
+    r.appendChild(ch);r.appendChild(ac);main.appendChild(r);
+
+    const sec=el('section','cm');
+    sec.appendChild(el('h2',null,comments.length+(comments.length===1?' comentario':' comentarios')));
+    const inn=el('div','in'),ta=el('textarea');ta.placeholder=user?'Escribe un comentario':'Inicia sesión para comentar';ta.setAttribute('aria-label','Comentario');
+    const cb=el('button','btn','Comentar');
+    cb.onclick=async()=>{
+      if(!user)return needLogin();
+      const t=ta.value.trim();if(!t)return;
+      await sb.from('comments').insert({video_id:id,author:who(),body:t});watch(id,true);
+    };
+    inn.appendChild(ta);inn.appendChild(cb);sec.appendChild(inn);
+    comments.forEach(c=>{
+      const row=el('div','c');row.appendChild(avatar(c.author));
+      const b=el('div');b.appendChild(el('div','s',c.author+' · '+ago(c.created_at)));b.appendChild(el('div',null,c.body));
+      row.appendChild(b);sec.appendChild(row);
     });
-    main.appendChild(cm);
-    var side=el('aside','side');
-    vids.filter(function(y){return y!==x}).forEach(function(y){side.appendChild(card(y,true))});
+    main.appendChild(sec);
+    const side=el('aside','side');
+    vids.filter(y=>y!==x).forEach(y=>side.appendChild(card(y,true)));
     w.appendChild(main);w.appendChild(side);app.appendChild(w);window.scrollTo(0,0);
   }
 
-  function go(v){view=v;v==='home'?home():watch()}
-  function open(id){var x=vids.filter(function(y){return y.id===id})[0];if(x){x.views++;save(x);cur=id;go('watch')}}
-
-  function snap(url,cb){
-    var t=document.createElement('video');t.preload='auto';t.muted=true;t.src=url;
-    var done=false;function fin(th,d){if(!done){done=true;cb(th,d)}}
-    t.onloadedmetadata=function(){t.currentTime=Math.min(1,(t.duration||2)/2)};
-    t.onseeked=function(){
-      try{var c=document.createElement('canvas');c.width=480;c.height=270;
-        c.getContext('2d').drawImage(t,0,0,480,270);fin(c.toDataURL('image/jpeg',.7),t.duration)}
-      catch(e){fin('',t.duration)}
-    };
-    t.onerror=function(){fin('',0)};
+  function snap(f){
+    return new Promise(res=>{
+      const url=URL.createObjectURL(f),t=document.createElement('video');
+      t.preload='auto';t.muted=true;t.src=url;
+      let done=false;const fin=(b,d)=>{if(!done){done=true;URL.revokeObjectURL(url);res({thumb:b,dur:d||0})}};
+      setTimeout(()=>fin(null,t.duration),8000);
+      t.onloadedmetadata=()=>{t.currentTime=Math.min(1,(t.duration||2)/2)};
+      t.onseeked=()=>{try{const c=document.createElement('canvas');c.width=480;c.height=270;c.getContext('2d').drawImage(t,0,0,480,270);c.toBlob(b=>fin(b,t.duration),'image/jpeg',.7)}catch(e){fin(null,t.duration)}};
+      t.onerror=()=>fin(null,0);
+    });
   }
 
-  var dlg=$('dlg');
-  $('up').onclick=function(){$('f').value='';$('ti').value='';$('err').textContent='';dlg.showModal()};
-  $('cancel').onclick=function(){dlg.close()};
-  $('f').onchange=function(){var f=this.files[0];if(f&&!$('ti').value)$('ti').value=f.name.replace(/\.[^.]+$/,'')};
-  $('pub').onclick=function(){
-    var f=$('f').files[0];
-    if(!f||f.type.indexOf('video')!==0){$('err').textContent='Elige un archivo de video.';return}
-    var url=URL.createObjectURL(f),title=$('ti').value.trim()||f.name,chan=$('cn').value.trim()||'Mi canal';
-    snap(url,function(th,d){
-      var nv={id:++uid,blob:f,url:url,thumb:th,dur:d,title:title,channel:chan,fileName:f.name,views:0,likes:0,liked:false,comments:[],at:Date.now()};vids.unshift(nv);save(nv);
-      dlg.close();go('home');
-    });
+  async function auth(mode){
+    const email=$('em').value.trim(),password=$('pw').value;$('aerr').textContent='';
+    const r=mode==='in'?await sb.auth.signInWithPassword({email,password}):await sb.auth.signUp({email,password});
+    if(r.error){$('aerr').textContent=r.error.message;return}
+    if(mode==='up'&&!r.data.session){$('aerr').textContent='Cuenta creada. Revisa tu correo para confirmarla y luego pulsa Entrar.';return}
+    $('adlg').close();
+  }
+
+  $('in').onclick=needLogin;
+  $('acancel').onclick=()=>$('adlg').close();
+  $('signin').onclick=()=>auth('in');
+  $('signup').onclick=()=>auth('up');
+  $('out').onclick=()=>sb.auth.signOut();
+  $('up').onclick=()=>{$('f').value='';$('ti').value='';$('uerr').textContent='';$('udlg').showModal()};
+  $('ucancel').onclick=()=>$('udlg').close();
+  $('f').onchange=function(){const f=this.files[0];if(f&&!$('ti').value)$('ti').value=f.name.replace(/\.[^.]+$/,'')};
+  $('pub').onclick=async()=>{
+    const f=$('f').files[0],btn=$('pub');
+    if(!f||f.type.indexOf('video')!==0){$('uerr').textContent='Elige un archivo de video.';return}
+    btn.disabled=true;$('uerr').textContent='Subiendo… no cierres la página.';
+    try{
+      const {thumb,dur}=await snap(f);
+      const id=crypto.randomUUID(),ext=(f.name.split('.').pop()||'mp4').toLowerCase().replace(/[^a-z0-9]/g,'')||'mp4';
+      const fp=user.id+'/'+id+'.'+ext,tp=thumb?user.id+'/'+id+'.jpg':null;
+      let r=await sb.storage.from('videos').upload(fp,f,{contentType:f.type});
+      if(r.error)throw r.error;
+      if(thumb)await sb.storage.from('videos').upload(tp,thumb,{contentType:'image/jpeg'});
+      r=await sb.from('videos').insert({id,title:$('ti').value.trim()||f.name,channel:$('cn').value.trim()||'Mi canal',file_path:fp,thumb_path:tp,duration:dur});
+      if(r.error)throw r.error;
+      $('udlg').close();home(true);
+    }catch(e){$('uerr').textContent='No se pudo subir: '+(e.message||e)}
+    btn.disabled=false;
   };
-  $('home').onclick=function(){$('q').value='';go('home')};
-  $('q').oninput=function(){if(view!=='home')view='home';home()};
-  dbOpen(function(){load(function(){home()})});
+  $('home').onclick=()=>{$('q').value='';home(true)};
+  $('q').oninput=()=>home();
+
+  sb.auth.onAuthStateChange((ev,s)=>{user=s?s.user:null;renderTop()});
+  sb.auth.getSession().then(r=>{user=r.data.session?r.data.session.user:null;renderTop();home(true)});
 })();
 </script>
 </body>

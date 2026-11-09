@@ -27,7 +27,7 @@ Una app web de videos al estilo YouTube que funciona en un solo archivo HTML, si
 
 1. Abre la carpeta del proyecto en VS Code.
 2. Instala la extensión **Live Server**.
-3. Haz clic derecho en `app-de-videos-yt.html` y elige **Open with Live Server**.
+3. Haz clic derecho en `index.html` y elige **Open with Live Server**.
 
 ### Con doble clic
 
