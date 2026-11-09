@@ -36,6 +36,21 @@ button{cursor:pointer}
 @media(max-width:960px){.watch{grid-template-columns:1fr}}
 .player{aspect-ratio:16/9;background:#000;border-radius:14px;overflow:hidden}
 .player video{width:100%;height:100%;display:block}
+.player{position:relative}
+.player video{cursor:pointer}
+.pbar{position:absolute;left:0;right:0;bottom:0;padding:28px 12px 8px;background:linear-gradient(transparent,rgba(0,0,0,.75));color:#fff;transition:opacity .2s}
+.player.idle:not(.paused) .pbar{opacity:0}
+.player.idle:not(.paused){cursor:none}
+.seek{width:100%;accent-color:var(--accent);margin:0 0 4px;cursor:pointer}
+.prow{display:flex;align-items:center;gap:6px}
+.pbtn{background:none;border:0;color:#fff;font-size:1.05rem;padding:6px 8px;border-radius:8px;min-width:36px}
+.pbtn:hover{background:rgba(255,255,255,.18)}
+.vol{width:80px;accent-color:var(--accent)}
+.ptime{font-size:.85rem;margin-left:6px;font-variant-numeric:tabular-nums}
+.sp{flex:1}
+.perr{position:absolute;inset:0;display:grid;place-items:center;color:#fff;background:rgba(0,0,0,.7)}
+.player:fullscreen{border-radius:0;aspect-ratio:auto}
+@media(max-width:560px){.vol{display:none}}
 h1{font-size:1.25rem;margin:12px 0 8px;overflow-wrap:anywhere}
 .row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
 .ch{display:flex;align-items:center;gap:10px}
@@ -147,8 +162,8 @@ dialog .row{margin-top:18px;justify-content:flex-end}
     if(!noCount){x.views++;sb.rpc('increment_views',{vid:id})}
     app.innerHTML='';
     const w=el('div','watch'),main=el('div');
-    const p=el('div','player'),v=document.createElement('video');
-    v.controls=true;v.playsInline=true;v.src=pub(x.file_path);p.appendChild(v);main.appendChild(p);
+    const pl=makePlayer(pub(x.file_path)),v=pl.v;
+    main.appendChild(pl.root);
     v.onended=()=>{const i=vids.indexOf(x),n=vids[i+1]||vids[0];if(n&&n!==x)watch(n.id)};
     v.play().catch(()=>{});
     main.appendChild(el('h1',null,x.title));
@@ -202,6 +217,61 @@ dialog .row{margin-top:18px;justify-content:flex-end}
     const side=el('aside','side');
     vids.filter(y=>y!==x).forEach(y=>side.appendChild(card(y,true)));
     w.appendChild(main);w.appendChild(side);app.appendChild(w);window.scrollTo(0,0);
+  }
+
+  function makePlayer(src){
+    const root=el('div','player paused'),v=document.createElement('video');
+    v.src=src;v.playsInline=true;v.preload='metadata';root.tabIndex=0;root.appendChild(v);
+    const bar=el('div','pbar'),row=el('div','prow');
+    const seek=document.createElement('input');seek.type='range';seek.min=0;seek.max=1000;seek.value=0;seek.className='seek';seek.setAttribute('aria-label','Barra de progreso');
+    const mk=(txt,label,fn)=>{const b=el('button','pbtn',txt);b.setAttribute('aria-label',label);b.onclick=e=>{e.stopPropagation();fn()};return b};
+    const toggle=()=>{v.paused?v.play().catch(()=>{}):v.pause()};
+    const full=()=>{
+      if(document.fullscreenElement)document.exitFullscreen();
+      else if(root.requestFullscreen)root.requestFullscreen();
+      else if(v.webkitEnterFullscreen)v.webkitEnterFullscreen();
+    };
+    const playB=mk('▶','Reproducir',toggle);
+    const muteB=mk('🔊','Silenciar',()=>{v.muted=!v.muted});
+    const vol=document.createElement('input');vol.type='range';vol.min=0;vol.max=1;vol.step=0.05;vol.value=1;vol.className='vol';vol.setAttribute('aria-label','Volumen');
+    vol.oninput=()=>{v.volume=parseFloat(vol.value);v.muted=v.volume===0};
+    const time=el('span','ptime','0:00 / 0:00');
+    const speeds=[1,1.25,1.5,2,0.5];let si=0;
+    const spdB=mk('1×','Velocidad de reproducción',()=>{si=(si+1)%speeds.length;v.playbackRate=speeds[si];spdB.textContent=speeds[si]+'×'});
+    const fsB=mk('⛶','Pantalla completa',full);
+    row.append(playB,muteB,vol,time,el('span','sp'),spdB,fsB);
+    bar.append(seek,row);root.appendChild(bar);
+
+    v.onclick=toggle;v.ondblclick=full;
+    v.onplay=()=>{playB.textContent='⏸';playB.setAttribute('aria-label','Pausar');root.classList.remove('paused')};
+    v.onpause=()=>{playB.textContent='▶';playB.setAttribute('aria-label','Reproducir');root.classList.add('paused')};
+    v.onvolumechange=()=>{muteB.textContent=(v.muted||v.volume===0)?'🔇':'🔊';vol.value=v.muted?0:v.volume};
+    let dragging=false;
+    const upd=()=>{time.textContent=fmt(v.currentTime)+' / '+fmt(v.duration);if(!dragging&&v.duration)seek.value=Math.round(v.currentTime/v.duration*1000)};
+    v.ontimeupdate=upd;v.onloadedmetadata=upd;
+    seek.onpointerdown=()=>{dragging=true};
+    seek.onpointerup=()=>{dragging=false};
+    seek.oninput=()=>{if(v.duration)v.currentTime=seek.value/1000*v.duration;upd()};
+    v.onerror=()=>root.appendChild(el('div','perr','No se pudo cargar el video.'));
+
+    let hide;const wake=()=>{root.classList.remove('idle');clearTimeout(hide);hide=setTimeout(()=>root.classList.add('idle'),2500)};
+    root.onmousemove=wake;root.onfocusin=wake;root.ontouchstart=wake;
+    root.onkeydown=e=>{
+      const t=e.target.tagName;
+      if(t==='INPUT'&&e.key.indexOf('Arrow')===0)return;
+      if(t==='BUTTON'&&(e.key===' '||e.key==='Enter'))return;
+      let h=true;
+      if(e.key===' '||e.key==='k')toggle();
+      else if(e.key==='ArrowRight')v.currentTime+=5;
+      else if(e.key==='ArrowLeft')v.currentTime-=5;
+      else if(e.key==='ArrowUp')v.volume=Math.min(1,v.volume+0.1);
+      else if(e.key==='ArrowDown')v.volume=Math.max(0,v.volume-0.1);
+      else if(e.key==='m')v.muted=!v.muted;
+      else if(e.key==='f')full();
+      else h=false;
+      if(h){e.preventDefault();wake()}
+    };
+    return {root,v};
   }
 
   function snap(f){
