@@ -17,7 +17,7 @@ Una app web de videos al estilo YouTube que funciona en un solo archivo HTML, si
 
 ```
 .
-├── app-de-videos-yt.html   # Toda la app: HTML, CSS y JavaScript
+├── index.html   # Toda la app: HTML, CSS y JavaScript
 └── README.md
 ```
 
@@ -31,7 +31,7 @@ Una app web de videos al estilo YouTube que funciona en un solo archivo HTML, si
 
 ### Con doble clic
 
-Abre `app-de-videos-yt.html` en tu navegador.
+Abre `index.html` en tu navegador.
 
 > Usa siempre la misma forma de abrirla. Los datos se guardan por navegador y por dirección, así que `127.0.0.1:5500` y `file://` tienen bibliotecas distintas.
 
